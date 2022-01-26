@@ -58,10 +58,9 @@ h1 {
 }
 
 .member-page > div {
-  display: flex;
   flex-direction: row;
   width: 100%;
-  text-align: left;
+  text-align: center;
   gap: 2rem;
 }
 .member-page > div > div {
@@ -107,6 +106,8 @@ h1 {
 }
 
 .card {
+  margin-left: auto;
+  margin-right: auto;
   background-color: #fff;
   padding: 1rem;
   border-radius: 1rem;

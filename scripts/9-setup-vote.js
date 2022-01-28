@@ -31,7 +31,7 @@ const tokenModule = sdk.getTokenModule (
       const ownedAmount =  ethers.BigNumber.from(ownedTokenBalance.value)
       const percent90 = ownedAmount.div(100).mul(90)
 
-      // Transferto voting contract
+      // Transfer voting contract
     await tokenModule.transfer(
       voteModule.address,
       percent90

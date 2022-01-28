@@ -4,7 +4,6 @@ import { ethers } from "ethers";
 // import thirdweb
 import { useWeb3 } from "@3rdweb/hooks";
 import { ThirdwebSDK } from "@3rdweb/sdk";
-import { has } from "lodash";
 
 // instantiate sdk on Rinkeby
 const sdk = new ThirdwebSDK("rinkeby");
@@ -16,6 +15,10 @@ const bundleDropModule = sdk.getBundleDropModule(
 
 const tokenModule = sdk.getTokenModule(
   "0x01395B412cceBbAd7C5E8aCbd869f07e0AD4fe08"
+)
+
+const voteModule = sdk.getVoteModule(
+  "0x71CD5Ed4Af58ee86ba4aDd72DD23015ccf2f5490"
 )
 
 
@@ -40,10 +43,56 @@ const App = () => {
   // State variable to check if user has our NFT
   const [hasClaimedNFT, setHasClaimedNFT] = useState(false);
 
+  const [proposals, setProposals] = useState([]);
+  const [isVoting, setIsVoting] = useState(false);
+  const [hasVoted, setHasVoted] = useState(false);
+
   // Shortens the wallet address
   const shortenAddress = (str) => {
     return str.substring(0,6) + "..." + str.substring(str.length - 4);
   };
+
+   // Retrieve all existing proposals from the contract
+   useEffect(() => {
+     if (!hasClaimedNFT) {
+       return;
+     }
+
+     voteModule
+      .getAll()
+      .then((proposals) => {
+        setProposals(proposals);
+        console.log("Proposals:", proposals)
+     })
+     .catch((err) => {
+       console.error("failed to get proposals", err);
+     });
+    }, [hasClaimedNFT]);
+
+    useEffect(() => {
+      if (!hasClaimedNFT) {
+        return;
+      }
+      if (!proposals.length) {
+        return;
+      }
+    
+
+     voteModule
+      .getAll(proposals[0].proposalId, address)
+      .then((hasVoted) => {
+        setHasVoted(hasVoted);
+        if (hasVoted) {
+         console.log("User has already voted");
+        } else {
+         console.log("User has not yet voted");
+        }
+      })
+     .catch((err) => {
+      console.error("Failed to check if wallet has voted", err);
+    });
+  }, [hasClaimedNFT, proposals, address]);
+
 
   // Grab all the addresses of our members holding our NFT
   useEffect(() => {
@@ -140,6 +189,7 @@ const App = () => {
       <div className="member-page">
         <h1>DAO Members Page</h1>
         <div>
+        <div>
           <h2>Member List</h2>
           <table className="card">
             <thead>
@@ -160,9 +210,105 @@ const App = () => {
             </tbody>
           </table>
         </div>
+        <div>
+          <h2>Active Proposals</h2>
+          <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsVoting(true);
+            const votes = proposals.map((proposal) => {
+              let voteResult = {
+                proposalId: proposal.proposalId,
+                vote: 2
+              };
+              proposal.votes.forEach((vote) => {
+                const elem = document.getElementById(
+                  proposal.proposalId + "-" + vote.type
+                );
+                if (elem.checked) {
+                  voteResult.vote = vote.type;
+                }
+              })
+              return voteResult;
+            });
+
+            try {
+              const delegation = await tokenModule.getDelegationOf(address);
+              if (delegation === ethers.consdtant.AddressZero) {
+                await tokenModule.delegateTo(address);
+              }
+              try {
+                await Promise.all(
+                  votes.map(async (vote) => {
+                    const proposal = await voteModule.get(vote.proposalId);
+                    if (proposal.state === 1) {
+                      return voteModule.vote(vote.proposalId, vote.vote);
+                    }
+                    return;
+                  })
+                );
+                try {
+                  await Promise.all(
+                    votes.map(async (vote) => {
+                      const proposal = await voteModule.get(
+                        vote.proposalId
+                      );
+
+                      if (proposal.stae === 4) {
+                        return voteModule.execute(vote.proposalId);
+                      }
+                    })
+                  );
+
+                  setHasVoted(true);
+                  console.log("Successfully voted");
+                } catch (err) {
+                  console.error("Failed to execute votes", err);
+                }
+              } catch (err) {
+                console.error("Failed to vote", err);
+              }
+            } catch (err) {
+              console.error("Failed to delegate tokens");
+            } finally {
+              setIsVoting(false)
+            }
+          }}
+          >
+            {proposals.map((proposal, index) => (
+              <div key={proposal.proposalId} className="card">
+                <h5>{proposal.description}</h5>
+              <div>
+                {proposal.votes.map((vote) => (
+                  <div key={vote.type}>
+                    <input 
+                      type="radio"
+                      id={proposal.proposalId + "-" + vote.type}
+                      name={proposal.proposalId}
+                      value={vote.type}
+                      defaultChecked={vote.type === 2}
+                    />
+                    <label htmlFor={proposal.proposalId + "-" + vote.type}>
+                      {vote.label}
+                    </label>
+                  </div>
+                ))}
+            </div>
+           </div>
+          ))}
+          <button disabled={isVoting || hasVoted} type="submit">
+            {isVoting ? "Voting..." : hasVoted ? "You already voted" : "Submit Votes"}
+          </button>
+          <small>
+            This will trigger multiple transactions that you will need to sign.
+          </small>
+        </form>
+        </div>
       </div>
-    )
-  }
+    </div>
+    );
+  };
 
   const mintNft = () => {
     setIsClaiming(true);

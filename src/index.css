@@ -4,7 +4,13 @@ body {
   font-family: Inter, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #7700ee;
+  background: rgb(238, 174, 202);
+  background: rgb(183, 174, 238);
+  background: radial-gradient(
+    circle,
+    rgba(183, 174, 238, 1) 0%,
+    rgba(148, 187, 233, 1) 100%
+  );
   color: #fff;
   overflow-x: hidden;
 }

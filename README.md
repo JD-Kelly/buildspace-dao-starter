@@ -1,11 +1,15 @@
 # buildspace x thirdweb - Build your own DAO with just Javascript
 
-### **Welcome 👋**
-To get started with this course, clone this repo and follow these commands:
+### Exploring the world of Web3 one project at a time via the wonderful [buildspace.so](https://buildspace.so/)
 
-1. Run `npm install` at the root of your directory
-2. Run `npm start` to start the project
-3. Start coding!
+### Find the project running on Netlify, here [DebugDAO](https://unruffled-kepler-095ad0.netlify.app/)
 
-### **Questions?**
-Have some questions make sure you head over to your [buildspace Dashboard](https://app.buildspace.so/projects/COb520aae3-7925-42f4-a5e7-eaf718933766) and link your Discord account so you can get access to helpful channels and your instructor!
+# What is it?
+The idea behind this project was to build a StackOverflow clone but with a focus on DAO princinples. Essentially members would be able to receive DAO tokens in exchange for their coding knowledge to help with answering questions submitted by other members.
+
+In its current form it only lets users connect their wallet, mint their membership NFT and vote on proposals. Adding the ability for users to submit questions and answers will be in a future iteration.  
+
+# What's it built with?
+* ### Javascript
+* ### [Web3.js](https://web3js.readthedocs.io/en/v1.7.0/)
+
